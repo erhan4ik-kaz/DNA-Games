@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Игра: ДНК-комплементарность</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .dna-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .dna-sequence {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            letter-spacing: 5px;
+        }
+
+        input {
+            font-size: 24px;
+            text-transform: uppercase;
+            width: 500px;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid white;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #16a085;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: #1abc9c;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #result {
+            font-size: 20px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .correct { color: lightgreen; }
+        .wrong { color: lightcoral; }
+
+        .info {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Игра: ДНК-комплементарность</h1>
+
+    <div class="dna-container">
+        <p>Выберите сложность:</p>
+        <button onclick="startGame(15)">Лёгкий (15 букв)</button>
+        <button onclick="startGame(20)">Средний (20 букв)</button>
+        <button onclick="startGame(25)">Сложный (25 букв)</button>
+    </div>
+
+    <div class="dna-container" id="game-area" style="display: none;">
+        <p class="info">Оставшееся время: <span id="timer">30</span> сек</p>
+        <p class="info">Очки: <span id="score">0</span></p>
+
+        <div class="dna-sequence" id="original-sequence"></div>
+        <input type="text" id="user-input" placeholder="Введите комплементарную цепь...">
+        <br>
+        <button onclick="checkDNA()">Проверить</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        let sequence = [];
+        let complementarySequence = "";
+        let timer;
+        let timeLeft = 30;
+        let score = 0;
+        let sequenceLength = 15;
+
+        // Функция для получения комплементарного основания
+        function getComplement(base) {
+            return base === "A" ? "T" :
+                   base === "T" ? "A" :
+                   base === "C" ? "G" :
+                   base === "G" ? "C" : "";
+        }
+
+        // Запуск игры
+        function startGame(length) {
+            sequenceLength = length;
+            sequence = [];
+            for (let i = 0; i < sequenceLength; i++) {
+                sequence.push(["A", "T", "C", "G"][Math.floor(Math.random() * 4)]);
+            }
+
+            complementarySequence = sequence.map(getComplement).join("");
+
+            document.getElementById("original-sequence").textContent = sequence.join(" ");
+            document.getElementById("user-input").value = "";
+            document.getElementById("game-area").style.display = "inline-block";
+            document.getElementById("result").textContent = "";
+            document.getElementById("score").textContent = score = 0;
+            document.getElementById("timer").textContent = timeLeft = 30;
+
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        // Таймер
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                document.getElementById("timer").textContent = timeLeft;
+            } else {
+                clearInterval(timer);
+                document.getElementById("result").innerHTML = "⏳ Время вышло! Попробуйте снова.";
+            }
+        }
+
+        // Проверка правильности ответа
+        function checkDNA() {
+            let userInput = document.getElementById("user-input").value.toUpperCase();
+            let resultDiv = document.getElementById("result");
+
+            if (userInput.length !== sequenceLength) {
+                resultDiv.textContent = `Ошибка: Введите ровно ${sequenceLength} символов!`;
+                resultDiv.style.color = "yellow";
+                return;
+            }
+
+            let correct = true;
+            let coloredText = "";
+
+            for (let i = 0; i < sequenceLength; i++) {
+                if (userInput[i] === complementarySequence[i]) {
+                    coloredText += `<span class="correct">${userInput[i]}</span>`;
+                    score++;
+                } else {
+                    coloredText += `<span class="wrong">${userInput[i]}</span>`;
+                    correct = false;
+                }
+            }
+
+            document.getElementById("score").textContent = score;
+            resultDiv.innerHTML = correct ? "✅ Правильно!" : `❌ Ошибка: ${coloredText}`;
+
+            if (correct) {
+                clearInterval(timer);
+                resultDiv.innerHTML += "<br>🎉 Поздравляем! Вы победили!";
+            }
+        }
+    </script>
+</body>
+</html>
